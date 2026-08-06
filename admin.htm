@@ -22,7 +22,6 @@
     .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 13px; }
     
     .btn-submit { background: var(--shopee-orange); color: white; border: none; padding: 11px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
-    .btn-submit:hover { opacity: 0.95; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; }
@@ -30,7 +29,7 @@
     .btn-del { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
   </style>
 
-  <!-- FIREBASE SDK -->
+  <!-- SAMBUNGAN SERVER DATABASE GOOGLE (FIREBASE) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -62,7 +61,6 @@
           <input type="file" id="prodFile" accept="image/*" onchange="convertImageToBase64(this)" required>
         </div>
 
-        <!-- PREVIEW GAMBAR -->
         <div id="previewBox" style="display:none; margin-bottom:12px;">
           <label style="font-size:11px; color:#666;">Preview Foto:</label><br>
           <img id="imgPreview" src="" style="max-height: 100px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;">
@@ -92,7 +90,7 @@
   </div>
 
   <script>
-    // Koneksi Cloud Database Firebase
+    // URL DATABASE YANG SAMA DENGAN CUSTOMER
     const firebaseConfig = {
       databaseURL: "https://sopy-online-demo-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
@@ -101,7 +99,6 @@
 
     let compressedBase64Image = "";
 
-    // Otomatis Mengompres Foto agar ringan & muat di server database
     function convertImageToBase64(input) {
       const file = input.files[0];
       if (file) {
@@ -110,7 +107,7 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const maxW = 350; // Lebar foto disesuaikan ke 350px
+            const maxW = 350;
             const scale = maxW / img.width;
             canvas.width = maxW;
             canvas.height = img.height * scale;
@@ -128,7 +125,7 @@
       }
     }
 
-    // Fungsi Upload ke Server Google Firebase
+    // MENGIRIM DATA PRODUK & GAMBAR KE SERVER SAMA YANG DIBACA CUSTOMER
     function saveProductToCloud(e) {
       e.preventDefault();
 
@@ -164,7 +161,6 @@
       });
     }
 
-    // Render Tabel Produk di Halaman Admin
     db.ref('products').on('value', (snapshot) => {
       const tbody = document.getElementById('adminTableBody');
       const data = snapshot.val();
