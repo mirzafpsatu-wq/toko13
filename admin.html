@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sopy Online - Admin Upload</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root { --shopee-orange: #ee4d2d; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background-color: #f4f6f9; padding: 20px; color: #333; }
+    
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    
+    .header { background: var(--shopee-orange); color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-toko { background: white; color: var(--shopee-orange); padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+    .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 13px; }
+    
+    .btn-submit { background: var(--shopee-orange); color: white; border: none; padding: 11px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; }
+    .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
+    .btn-del { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h2><i class="fas fa-cloud-upload-alt"></i> Panel Admin Upload Produk</h2>
+      <a href="index.html" class="btn-toko"><i class="fas fa-store"></i> Buka Toko Customer</a>
+    </div>
+
+    <!-- FORM UPLOAD -->
+    <div class="card">
+      <h3 style="margin-bottom: 15px; color: var(--shopee-orange);"><i class="fas fa-plus-circle"></i> Tambah Produk Baru</h3>
+      
+      <form id="uploadForm" onsubmit="saveProductOnline(event)">
+        <div class="form-group">
+          <label>Nama Produk*</label>
+          <input type="text" id="prodTitle" placeholder="Contoh: Sepatu Sneaker" required>
+        </div>
+
+        <div class="form-group">
+          <label>Harga (Rp)*</label>
+          <input type="number" id="prodPrice" placeholder="Contoh: 120000" required>
+        </div>
+
+        <div class="form-group">
+          <label>Pilih File Foto Gambar*</label>
+          <input type="file" id="prodFile" accept="image/*" onchange="convertImage(this)" required>
+        </div>
+
+        <div id="previewBox" style="display:none; margin-bottom:12px;">
+          <label style="font-size:11px; color:#666;">Preview Foto:</label><br>
+          <img id="imgPreview" src="" style="max-height: 100px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;">
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSave"><i class="fas fa-upload"></i> Upload Online Ke Semua Customer</button>
+      </form>
+    </div>
+
+    <!-- TABEL MANAJEMEN PRODUK -->
+    <div class="card">
+      <h3><i class="fas fa-boxes"></i> Daftar Produk Terpasang</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Gambar</th>
+            <th>Nama Produk</th>
+            <th>Harga</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentImageBase64 = "";
+    let globalProducts = [];
+
+    function convertImage(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxW = 300;
+            const scale = maxW / img.width;
+            canvas.width = maxW;
+            canvas.height = img.height * scale;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            currentImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+            document.getElementById('imgPreview').src = currentImageBase64;
+            document.getElementById('previewBox').style.display = 'block';
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    async function loadAdminData() {
+      const tbody = document.getElementById('adminTableBody');
+      try {
+        const res = await fetch('https://api.npoint.io/46c0a00632cd22ba71cb');
+        const data = await res.json();
+        globalProducts = data.products || [];
+
+        if (globalProducts.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada produk tersimpan di server.</td></tr>`;
+          return;
+        }
+
+        let html = '';
+        globalProducts.forEach((p, index) => {
+          html += `
+            <tr>
+              <td><img src="${p.image}" class="img-thumb"></td>
+              <td><b>${p.title}</b></td>
+              <td>Rp ${Number(p.price).toLocaleString('id-ID')}</td>
+              <td><button class="btn-del" onclick="deleteProductOnline(${index})"><i class="fas fa-trash"></i> Hapus</button></td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Gagal memuat data dari server online.</td></tr>`;
+      }
+    }
+
+    async function saveProductOnline(e) {
+      e.preventDefault();
+      if (!currentImageBase64) {
+        alert("Pilih foto dulu!");
+        return;
+      }
+
+      const btn = document.getElementById('btnSave');
+      btn.innerText = "Mengunggah ke Server Online...";
+      btn.disabled = true;
+
+      const title = document.getElementById('prodTitle').value;
+      const price = document.getElementById('prodPrice').value;
+
+      const newProduct = {
+        id: Date.now(),
+        title: title,
+        price: price,
+        image: currentImageBase64
+      };
+
+      globalProducts.unshift(newProduct);
+
+      try {
+        await fetch('https://api.npoint.io/46c0a00632cd22ba71cb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: globalProducts })
+        });
+
+        alert("Berhasil! Produk tersimpan di server online dan dapat dilihat semua HP customer!");
+        document.getElementById('uploadForm').reset();
+        document.getElementById('previewBox').style.display = 'none';
+        currentImageBase64 = "";
+        loadAdminData();
+      } catch (err) {
+        alert("Gagal mengunggah: " + err.message);
+      } finally {
+        btn.innerHTML = `<i class="fas fa-upload"></i> Upload Online Ke Semua Customer`;
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteProductOnline(index) {
+      if(confirm("Hapus produk ini dari server online?")) {
+        globalProducts.splice(index, 1);
+        await fetch('https://api.npoint.io/46c0a00632cd22ba71cb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: globalProducts })
+        });
+        loadAdminData();
+      }
+    }
+
+    loadAdminData();
+  </script>
+</body>
+</html>
