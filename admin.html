@@ -19,21 +19,21 @@
 
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
-    .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 13px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 13px; }
     
-    .btn-submit { background: var(--shopee-orange); color: white; border: none; padding: 11px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
+    .btn-submit { background: var(--shopee-orange); color: white; border: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; }
     .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
-    .btn-del { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+    .btn-del { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div class="header">
-      <h2><i class="fas fa-cloud-upload-alt"></i> Panel Admin Upload Produk</h2>
+      <h2><i class="fas fa-cloud-upload-alt"></i> Panel Admin Upload</h2>
       <a href="index.html" class="btn-toko"><i class="fas fa-store"></i> Buka Toko Customer</a>
     </div>
 
@@ -41,10 +41,10 @@
     <div class="card">
       <h3 style="margin-bottom: 15px; color: var(--shopee-orange);"><i class="fas fa-plus-circle"></i> Tambah Produk Baru</h3>
       
-      <form id="uploadForm" onsubmit="saveProductOnline(event)">
+      <form id="uploadForm" onsubmit="saveProduct(event)">
         <div class="form-group">
           <label>Nama Produk*</label>
-          <input type="text" id="prodTitle" placeholder="Contoh: Sepatu Sneaker" required>
+          <input type="text" id="prodTitle" placeholder="Contoh: Jaket Parasut Waterproof" required>
         </div>
 
         <div class="form-group">
@@ -53,27 +53,32 @@
         </div>
 
         <div class="form-group">
-          <label>Pilih File Foto Gambar*</label>
+          <label>Deskripsi Detail Produk</label>
+          <textarea id="prodDesc" rows="2" placeholder="Tuliskan ukuran, keunggulan, bahan..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Pilih Foto Galeri HP*</label>
           <input type="file" id="prodFile" accept="image/*" onchange="convertImage(this)" required>
         </div>
 
         <div id="previewBox" style="display:none; margin-bottom:12px;">
-          <label style="font-size:11px; color:#666;">Preview Foto:</label><br>
+          <label style="font-size:11px; color:#666;">Preview Foto Terkompresi:</label><br>
           <img id="imgPreview" src="" style="max-height: 100px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;">
         </div>
 
-        <button type="submit" class="btn-submit" id="btnSave"><i class="fas fa-upload"></i> Upload Online Ke Semua Customer</button>
+        <button type="submit" class="btn-submit"><i class="fas fa-upload"></i> Upload & Tampilkan Ke Customer</button>
       </form>
     </div>
 
-    <!-- TABEL MANAJEMEN PRODUK -->
+    <!-- TABEL MANAJEMEN -->
     <div class="card">
       <h3><i class="fas fa-boxes"></i> Daftar Produk Terpasang</h3>
       <table>
         <thead>
           <tr>
-            <th>Gambar</th>
-            <th>Nama Produk</th>
+            <th>Foto</th>
+            <th>Nama</th>
             <th>Harga</th>
             <th>Aksi</th>
           </tr>
@@ -84,9 +89,9 @@
   </div>
 
   <script>
-    let currentImageBase64 = "";
-    let globalProducts = [];
+    let photoData = "";
 
+    // MENGECILKAN FOTO OTOMATIS SUPAYA CEPAT & RINGAN
     function convertImage(input) {
       const file = input.files[0];
       if (file) {
@@ -95,16 +100,16 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const maxW = 300;
-            const scale = maxW / img.width;
-            canvas.width = maxW;
+            const targetWidth = 350;
+            const scale = targetWidth / img.width;
+            canvas.width = targetWidth;
             canvas.height = img.height * scale;
 
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            currentImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
-            document.getElementById('imgPreview').src = currentImageBase64;
+            photoData = canvas.toDataURL('image/jpeg', 0.6);
+            document.getElementById('imgPreview').src = photoData;
             document.getElementById('previewBox').style.display = 'block';
           };
           img.src = e.target.result;
@@ -113,91 +118,71 @@
       }
     }
 
-    async function loadAdminData() {
-      const tbody = document.getElementById('adminTableBody');
-      try {
-        const res = await fetch('https://api.npoint.io/46c0a00632cd22ba71cb');
-        const data = await res.json();
-        globalProducts = data.products || [];
-
-        if (globalProducts.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada produk tersimpan di server.</td></tr>`;
-          return;
-        }
-
-        let html = '';
-        globalProducts.forEach((p, index) => {
-          html += `
-            <tr>
-              <td><img src="${p.image}" class="img-thumb"></td>
-              <td><b>${p.title}</b></td>
-              <td>Rp ${Number(p.price).toLocaleString('id-ID')}</td>
-              <td><button class="btn-del" onclick="deleteProductOnline(${index})"><i class="fas fa-trash"></i> Hapus</button></td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
-      } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Gagal memuat data dari server online.</td></tr>`;
-      }
-    }
-
-    async function saveProductOnline(e) {
+    function saveProduct(e) {
       e.preventDefault();
-      if (!currentImageBase64) {
-        alert("Pilih foto dulu!");
+      if (!photoData) {
+        alert("Pilih foto dulu dari galeri HP!");
         return;
       }
 
-      const btn = document.getElementById('btnSave');
-      btn.innerText = "Mengunggah ke Server Online...";
-      btn.disabled = true;
-
       const title = document.getElementById('prodTitle').value;
       const price = document.getElementById('prodPrice').value;
+      const desc = document.getElementById('prodDesc').value;
 
       const newProduct = {
         id: Date.now(),
         title: title,
         price: price,
-        image: currentImageBase64
+        desc: desc || "Produk berkualitas dari toko kami.",
+        image: photoData
       };
 
-      globalProducts.unshift(newProduct);
+      const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
+      products.unshift(newProduct);
+      localStorage.setItem('sopy_products', JSON.stringify(products));
 
-      try {
-        await fetch('https://api.npoint.io/46c0a00632cd22ba71cb', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products: globalProducts })
-        });
+      alert("BERHASIL! Produk langsung tersambung ke halaman Customer!");
 
-        alert("Berhasil! Produk tersimpan di server online dan dapat dilihat semua HP customer!");
-        document.getElementById('uploadForm').reset();
-        document.getElementById('previewBox').style.display = 'none';
-        currentImageBase64 = "";
-        loadAdminData();
-      } catch (err) {
-        alert("Gagal mengunggah: " + err.message);
-      } finally {
-        btn.innerHTML = `<i class="fas fa-upload"></i> Upload Online Ke Semua Customer`;
-        btn.disabled = false;
+      document.getElementById('uploadForm').reset();
+      document.getElementById('previewBox').style.display = 'none';
+      photoData = "";
+
+      loadAdminTable();
+    }
+
+    function loadAdminTable() {
+      const tbody = document.getElementById('adminTableBody');
+      const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
+
+      if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada produk tersimpan.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      products.forEach((p, idx) => {
+        html += `
+          <tr>
+            <td><img src="${p.image}" class="img-thumb"></td>
+            <td><b>${p.title}</b></td>
+            <td>Rp ${Number(p.price).toLocaleString('id-ID')}</td>
+            <td><button class="btn-del" onclick="deleteProduct(${idx})"><i class="fas fa-trash"></i> Hapus</button></td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function deleteProduct(idx) {
+      if(confirm("Hapus produk ini dari toko?")) {
+        const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
+        products.splice(idx, 1);
+        localStorage.setItem('sopy_products', JSON.stringify(products));
+        loadAdminTable();
       }
     }
 
-    async function deleteProductOnline(index) {
-      if(confirm("Hapus produk ini dari server online?")) {
-        globalProducts.splice(index, 1);
-        await fetch('https://api.npoint.io/46c0a00632cd22ba71cb', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products: globalProducts })
-        });
-        loadAdminData();
-      }
-    }
-
-    loadAdminData();
+    loadAdminTable();
   </script>
 </body>
 </html>
