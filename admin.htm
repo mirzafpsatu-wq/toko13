@@ -28,10 +28,6 @@
     .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
     .btn-del { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
   </style>
-
-  <!-- SAMBUNGAN SERVER DATABASE GOOGLE (FIREBASE) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -45,20 +41,20 @@
     <div class="card">
       <h3 style="margin-bottom: 15px; color: var(--shopee-orange);"><i class="fas fa-plus-circle"></i> Tambah Produk Baru</h3>
       
-      <form id="uploadForm" onsubmit="saveProductToCloud(event)">
+      <form id="uploadForm" onsubmit="saveProduct(event)">
         <div class="form-group">
           <label>Nama Produk*</label>
-          <input type="text" id="prodTitle" placeholder="Contoh: Sepatu Sneaker Putih" required>
+          <input type="text" id="prodTitle" placeholder="Contoh: Baju Kemeja" required>
         </div>
 
         <div class="form-group">
           <label>Harga (Rp)*</label>
-          <input type="number" id="prodPrice" placeholder="Contoh: 120000" required>
+          <input type="number" id="prodPrice" placeholder="Contoh: 85000" required>
         </div>
 
         <div class="form-group">
-          <label>Pilih File Foto Gambar (HP / Laptop)*</label>
-          <input type="file" id="prodFile" accept="image/*" onchange="convertImageToBase64(this)" required>
+          <label>Pilih File Foto Gambar*</label>
+          <input type="file" id="prodFile" accept="image/*" onchange="convertImage(this)" required>
         </div>
 
         <div id="previewBox" style="display:none; margin-bottom:12px;">
@@ -72,7 +68,7 @@
 
     <!-- TABEL MANAJEMEN PRODUK -->
     <div class="card">
-      <h3><i class="fas fa-boxes"></i> Daftar Produk Aktif di Server</h3>
+      <h3><i class="fas fa-boxes"></i> Daftar Produk Terpasang</h3>
       <table>
         <thead>
           <tr>
@@ -82,24 +78,16 @@
             <th>Aksi</th>
           </tr>
         </thead>
-        <tbody id="adminTableBody">
-          <tr><td colspan="4" style="text-align:center;">Memuat data produk...</td></tr>
-        </tbody>
+        <tbody id="adminTableBody"></tbody>
       </table>
     </div>
   </div>
 
   <script>
-    // URL DATABASE YANG SAMA DENGAN CUSTOMER
-    const firebaseConfig = {
-      databaseURL: "https://sopy-online-demo-default-rtdb.asia-southeast1.firebasedatabase.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    let currentImageBase64 = "";
 
-    let compressedBase64Image = "";
-
-    function convertImageToBase64(input) {
+    // Fungsi mengubah foto file menjadi string data gambar ringan
+    function convertImage(input) {
       const file = input.files[0];
       if (file) {
         const reader = new FileReader();
@@ -107,7 +95,7 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const maxW = 350;
+            const maxW = 300;
             const scale = maxW / img.width;
             canvas.width = maxW;
             canvas.height = img.height * scale;
@@ -115,8 +103,8 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            compressedBase64Image = canvas.toDataURL('image/jpeg', 0.7);
-            document.getElementById('imgPreview').src = compressedBase64Image;
+            currentImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+            document.getElementById('imgPreview').src = currentImageBase64;
             document.getElementById('previewBox').style.display = 'block';
           };
           img.src = e.target.result;
@@ -125,71 +113,71 @@
       }
     }
 
-    // MENGIRIM DATA PRODUK & GAMBAR KE SERVER SAMA YANG DIBACA CUSTOMER
-    function saveProductToCloud(e) {
+    // SIMPAN HASH PRODUK & FOTO SINKRON KE HALAMAN CUSTOMER
+    function saveProduct(e) {
       e.preventDefault();
-
-      if (!compressedBase64Image) {
+      if (!currentImageBase64) {
         alert("Pilih file foto terlebih dahulu!");
         return;
       }
 
-      const btn = document.getElementById('btnSave');
-      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Mengunggah...`;
-      btn.disabled = true;
-
       const title = document.getElementById('prodTitle').value;
-      const price = Number(document.getElementById('prodPrice').value);
+      const price = document.getElementById('prodPrice').value;
 
-      db.ref('products').push({
+      const newProduct = {
+        id: Date.now(),
         title: title,
         price: price,
-        image: compressedBase64Image,
-        createdAt: Date.now()
-      }).then(() => {
-        alert("Berhasil! Produk dan Foto tersimpan & tampil di toko customer!");
-        
-        document.getElementById('uploadForm').reset();
-        document.getElementById('previewBox').style.display = 'none';
-        compressedBase64Image = "";
-        btn.innerHTML = `<i class="fas fa-upload"></i> Upload & Tampilkan ke Toko`;
-        btn.disabled = false;
-      }).catch(err => {
-        alert("Gagal mengupload: " + err.message);
-        btn.innerHTML = `<i class="fas fa-upload"></i> Upload & Tampilkan ke Toko`;
-        btn.disabled = false;
-      });
+        image: currentImageBase64
+      };
+
+      const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
+      products.unshift(newProduct);
+      localStorage.setItem('sopy_products', JSON.stringify(products));
+
+      alert("Berhasil! Produk & Foto tersambung dan langsung tampil di Customer!");
+
+      // Reset form
+      document.getElementById('uploadForm').reset();
+      document.getElementById('previewBox').style.display = 'none';
+      currentImageBase64 = "";
+
+      loadAdminTable();
     }
 
-    db.ref('products').on('value', (snapshot) => {
+    function loadAdminTable() {
       const tbody = document.getElementById('adminTableBody');
-      const data = snapshot.val();
+      const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
 
-      if (!data) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada produk di database.</td></tr>`;
+      if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada produk tersimpan.</td></tr>`;
         return;
       }
 
       let html = '';
-      Object.keys(data).reverse().forEach(key => {
-        const p = data[key];
+      products.forEach((p, index) => {
         html += `
           <tr>
             <td><img src="${p.image}" class="img-thumb"></td>
             <td><b>${p.title}</b></td>
             <td>Rp ${Number(p.price).toLocaleString('id-ID')}</td>
-            <td><button class="btn-del" onclick="deleteProductFromCloud('${key}')"><i class="fas fa-trash"></i> Hapus</button></td>
+            <td><button class="btn-del" onclick="deleteProduct(${index})"><i class="fas fa-trash"></i> Hapus</button></td>
           </tr>
         `;
       });
       tbody.innerHTML = html;
-    });
+    }
 
-    function deleteProductFromCloud(key) {
-      if(confirm("Hapus produk ini dari toko secara permanen?")) {
-        db.ref('products/' + key).remove();
+    function deleteProduct(index) {
+      if(confirm("Hapus produk ini dari toko?")) {
+        const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
+        products.splice(index, 1);
+        localStorage.setItem('sopy_products', JSON.stringify(products));
+        loadAdminTable();
       }
     }
+
+    loadAdminTable();
   </script>
 </body>
 </html>
