@@ -40,7 +40,7 @@
     }
 
     /* CONTAINER UTAMA */
-    .container { max-width: 800px; margin: 20px auto; padding: 0 12px; }
+    .container { max-width: 900px; margin: 20px auto; padding: 0 12px; }
 
     /* LAYAR LOGIN DENGAN ANIMASI */
     #loginSection {
@@ -84,15 +84,15 @@
       from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .card-title { font-size: 14px; font-weight: 700; color: var(--shopee-orange); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--shopee-orange); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
 
     /* STATS SUMMARY ALA SHOPEE */
-    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .stat-card { background: var(--shopee-light-orange); padding: 12px; border-radius: 6px; border: 1px solid #fce3dd; text-align: center; }
-    .stat-number { font-size: 18px; font-weight: 700; color: var(--shopee-orange); }
+    .stat-number { font-size: 16px; font-weight: 700; color: var(--shopee-orange); }
     .stat-label { font-size: 11px; color: #666; margin-top: 2px; }
 
-    /* TABEL PRODUK */
+    /* TABEL PRODUK & PESANAN */
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 5px; }
     th, td { padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; vertical-align: middle; }
@@ -105,6 +105,11 @@
       transition: background 0.2s;
     }
     .btn-del:hover { background: #dc3545; color: white; }
+
+    /* CUSTOMER ORDER STYLES */
+    .badge-status { background: #e6f4ea; color: #137333; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; display: inline-block; }
+    .customer-info { font-size: 11px; color: #555; line-height: 1.4; }
+    .product-list-small { font-size: 11px; color: #333; list-style: square; padding-left: 15px; }
 
     /* TOAST NOTIFIKASI */
     #toast {
@@ -152,18 +157,44 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="totalProductsCount">0</div>
-        <div class="stat-label">Total Produk Aktif</div>
+        <div class="stat-label">Produk Aktif</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number" id="totalValueCount">Rp 0</div>
-        <div class="stat-label">Estimasi Nilai Stok</div>
+        <div class="stat-number" id="totalOrdersCount">0</div>
+        <div class="stat-label">Pesanan Masuk</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalRevenueCount">Rp 0</div>
+        <div class="stat-label">Total Penjualan</div>
+      </div>
+    </div>
+
+    <!-- TABEL DATA PESANAN CUSTOMER -->
+    <div class="card">
+      <div class="card-title">
+        <span><i class="fas fa-file-invoice-dollar"></i> Riwayat Pembelian Customer</span>
+        <button onclick="clearOrders()" style="background:none; border:none; color:#dc3545; font-size:11px; cursor:pointer;"><i class="fas fa-trash-alt"></i> Bersihkan Histori</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID & Waktu</th>
+              <th>Data Pembeli</th>
+              <th>Item Dibeli</th>
+              <th>Total Bayar</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody"></tbody>
+        </table>
       </div>
     </div>
 
     <!-- FORM UPLOAD PRODUK -->
     <div class="card">
       <div class="card-title">
-        <i class="fas fa-plus-circle"></i> Tambah Produk Baru
+        <span><i class="fas fa-plus-circle"></i> Tambah Produk Baru</span>
       </div>
       
       <form id="uploadForm" onsubmit="saveProduct(event)">
@@ -201,7 +232,7 @@
     <!-- TABEL MANAJEMEN PRODUK -->
     <div class="card">
       <div class="card-title">
-        <i class="fas fa-boxes-stacked"></i> Daftar Produk Terpasang
+        <span><i class="fas fa-boxes-stacked"></i> Daftar Produk Terpasang</span>
       </div>
       <div class="table-container">
         <table>
@@ -270,7 +301,7 @@
       checkAuth();
     }
 
-    // KONVERSI FOTO OTOMATIS SUPAYA RINGAN
+    // KONVERSI FOTO OTOMATIS
     function convertImage(input) {
       const file = input.files[0];
       if (file) {
@@ -330,13 +361,15 @@
     }
 
     function loadAdminData() {
+      loadProductsTable();
+      loadOrdersTable();
+    }
+
+    function loadProductsTable() {
       const tbody = document.getElementById('adminTableBody');
       const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
 
-      // Hitung Statistik
       document.getElementById('totalProductsCount').innerText = products.length;
-      const totalVal = products.reduce((acc, curr) => acc + Number(curr.price), 0);
-      document.getElementById('totalValueCount').innerText = 'Rp ' + totalVal.toLocaleString('id-ID');
 
       if (products.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Belum ada produk tersimpan.</td></tr>`;
@@ -357,13 +390,69 @@
       tbody.innerHTML = html;
     }
 
+    function loadOrdersTable() {
+      const tbody = document.getElementById('ordersTableBody');
+      const orders = JSON.parse(localStorage.getItem('sopy_orders') || '[]');
+
+      document.getElementById('totalOrdersCount').innerText = orders.length;
+
+      const totalRevenue = orders.reduce((acc, curr) => acc + Number(curr.totalPrice || 0), 0);
+      document.getElementById('totalRevenueCount').innerText = 'Rp ' + totalRevenue.toLocaleString('id-ID');
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888; padding:15px;">Belum ada pesanan masuk dari customer.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      orders.forEach((o) => {
+        let itemsHtml = '<ul class="product-list-small">';
+        if (Array.isArray(o.items)) {
+          o.items.forEach(item => {
+            itemsHtml += `<li>${item.title} (x${item.qty || 1})</li>`;
+          });
+        } else {
+          itemsHtml += `<li>${o.productTitle || 'Produk Sopy'}</li>`;
+        }
+        itemsHtml += '</ul>';
+
+        html += `
+          <tr>
+            <td>
+              <b>#${o.id || 'ORD-001'}</b><br>
+              <span style="font-size:10px; color:#888;">${o.date || 'Baru Saja'}</span>
+            </td>
+            <td>
+              <div class="customer-info">
+                <b>${o.customerName || 'Customer Sopy'}</b><br>
+                📞 ${o.customerPhone || '-'}<br>
+                📍 ${o.customerAddress || 'Alamat tidak diisi'}
+              </div>
+            </td>
+            <td>${itemsHtml}</td>
+            <td style="color:var(--shopee-orange); font-weight:700;">Rp ${Number(o.totalPrice || 0).toLocaleString('id-ID')}</td>
+            <td><span class="badge-status">Selesai / Lunas</span></td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
     function deleteProduct(idx) {
       if(confirm("Hapus produk ini dari toko?")) {
         const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
         products.splice(idx, 1);
         localStorage.setItem('sopy_products', JSON.stringify(products));
         showToast("Produk dihapus!");
-        loadAdminData();
+        loadProductsTable();
+      }
+    }
+
+    function clearOrders() {
+      if(confirm("Yakin ingin menghapus seluruh riwayat pesanan customer?")) {
+        localStorage.removeItem('sopy_orders');
+        showToast("Riwayat pesanan dibersihkan!");
+        loadOrdersTable();
       }
     }
 
