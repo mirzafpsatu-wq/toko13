@@ -17,7 +17,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: var(--shopee-bg); color: #333; min-height: 100vh; padding-bottom: 40px; }
 
-    /* HEADER ADMIN ALA SHOPEE */
     header {
       background: var(--shopee-orange);
       color: white; padding: 12px 20px;
@@ -26,7 +25,6 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
     .brand { font-size: 17px; font-weight: 700; color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; }
-    
     .nav-actions { display: flex; align-items: center; gap: 10px; }
     .btn-toko { 
       background: white; color: var(--shopee-orange); border: none;
@@ -39,10 +37,8 @@
       padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;
     }
 
-    /* CONTAINER UTAMA */
     .container { max-width: 900px; margin: 20px auto; padding: 0 12px; }
 
-    /* LAYAR LOGIN DENGAN ANIMASI */
     #loginSection {
       max-width: 380px; margin: 60px auto; background: white; padding: 24px;
       border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;
@@ -55,7 +51,6 @@
     .login-icon { font-size: 45px; color: var(--shopee-orange); margin-bottom: 12px; }
     .login-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #222; }
 
-    /* FORM & INPUT */
     .form-group { margin-bottom: 14px; text-align: left; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555; }
     .form-group input, .form-group textarea { 
@@ -74,7 +69,6 @@
     }
     .btn-submit:active { transform: scale(0.98); background: var(--shopee-dark-orange); }
 
-    /* KARTU DASHBOARD ADMIN */
     .card { 
       background: white; padding: 18px; border-radius: 8px; 
       box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; 
@@ -86,13 +80,11 @@
     }
     .card-title { font-size: 14px; font-weight: 700; color: var(--shopee-orange); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
 
-    /* STATS SUMMARY ALA SHOPEE */
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .stat-card { background: var(--shopee-light-orange); padding: 12px; border-radius: 6px; border: 1px solid #fce3dd; text-align: center; }
     .stat-number { font-size: 16px; font-weight: 700; color: var(--shopee-orange); }
     .stat-label { font-size: 11px; color: #666; margin-top: 2px; }
 
-    /* TABEL PRODUK & PESANAN */
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 5px; }
     th, td { padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; vertical-align: middle; }
@@ -106,12 +98,10 @@
     }
     .btn-del:hover { background: #dc3545; color: white; }
 
-    /* CUSTOMER ORDER STYLES */
     .badge-status { background: #e6f4ea; color: #137333; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; display: inline-block; }
-    .customer-info { font-size: 11px; color: #555; line-height: 1.4; }
-    .product-list-small { font-size: 11px; color: #333; list-style: square; padding-left: 15px; }
+    .customer-info { font-size: 11px; color: #444; line-height: 1.5; }
+    .product-list-small { font-size: 11px; color: #333; list-style: disc; padding-left: 15px; }
 
-    /* TOAST NOTIFIKASI */
     #toast {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-50px);
       background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 20px;
@@ -130,7 +120,6 @@
     </div>
   </header>
 
-  <!-- FORM LOGIN ADMIN -->
   <div class="container" id="loginSection">
     <div class="login-icon"><i class="fas fa-shield-halved"></i></div>
     <div class="login-title">Login Admin Toko</div>
@@ -150,10 +139,8 @@
     <p style="font-size:11px; color:#888; margin-top:15px;">*Default: username <b>admin</b> | password <b>admin123</b></p>
   </div>
 
-  <!-- PANEL UTAMA ADMIN (DIPROTEKSI LOGIN) -->
   <div class="container" id="adminPanel" style="display:none;">
     
-    <!-- STATISTIK RINGKAS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="totalProductsCount">0</div>
@@ -191,7 +178,6 @@
       </div>
     </div>
 
-    <!-- FORM UPLOAD PRODUK -->
     <div class="card">
       <div class="card-title">
         <span><i class="fas fa-plus-circle"></i> Tambah Produk Baru</span>
@@ -229,7 +215,6 @@
       </form>
     </div>
 
-    <!-- TABEL MANAJEMEN PRODUK -->
     <div class="card">
       <div class="card-title">
         <span><i class="fas fa-boxes-stacked"></i> Daftar Produk Terpasang</span>
@@ -250,13 +235,11 @@
     </div>
   </div>
 
-  <!-- TOAST NOTIFIKASI -->
   <div id="toast">Notifikasi</div>
 
   <script>
     let photoData = "";
 
-    // KREDENSIAL DEFAULT LOGIN ADMIN
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin123";
 
@@ -301,7 +284,6 @@
       checkAuth();
     }
 
-    // KONVERSI FOTO OTOMATIS
     function convertImage(input) {
       const file = input.files[0];
       if (file) {
@@ -390,6 +372,7 @@
       tbody.innerHTML = html;
     }
 
+    // FUNGSI MEMBACA DATA ORDER BARU
     function loadOrdersTable() {
       const tbody = document.getElementById('ordersTableBody');
       const orders = JSON.parse(localStorage.getItem('sopy_orders') || '[]');
@@ -407,9 +390,9 @@
       let html = '';
       orders.forEach((o) => {
         let itemsHtml = '<ul class="product-list-small">';
-        if (Array.isArray(o.items)) {
+        if (Array.isArray(o.items) && o.items.length > 0) {
           o.items.forEach(item => {
-            itemsHtml += `<li>${item.title} (x${item.qty || 1})</li>`;
+            itemsHtml += `<li>${item.title} (x${item.qty || 1}) - Rp ${Number(item.price).toLocaleString('id-ID')}</li>`;
           });
         } else {
           itemsHtml += `<li>${o.productTitle || 'Produk Sopy'}</li>`;
@@ -424,14 +407,14 @@
             </td>
             <td>
               <div class="customer-info">
-                <b>${o.customerName || 'Customer Sopy'}</b><br>
-                📞 ${o.customerPhone || '-'}<br>
-                📍 ${o.customerAddress || 'Alamat tidak diisi'}
+                <b><i class="fas fa-user"></i> ${o.customerName || 'Customer Sopy'}</b><br>
+                <span><i class="fas fa-phone"></i> ${o.customerPhone || '-'}</span><br>
+                <span><i class="fas fa-location-dot"></i> ${o.customerAddress || 'Alamat tidak diisi'}</span>
               </div>
             </td>
             <td>${itemsHtml}</td>
             <td style="color:var(--shopee-orange); font-weight:700;">Rp ${Number(o.totalPrice || 0).toLocaleString('id-ID')}</td>
-            <td><span class="badge-status">Selesai / Lunas</span></td>
+            <td><span class="badge-status">Pesanan Masuk</span></td>
           </tr>
         `;
       });
@@ -456,7 +439,6 @@
       }
     }
 
-    // Inisialisasi saat halaman dibuka
     checkAuth();
   </script>
 </body>
