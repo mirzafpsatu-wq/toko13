@@ -3,95 +3,274 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sopy Online - Admin Upload</title>
+  <title>Sopy Online - Admin Panel</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    :root { --shopee-orange: #ee4d2d; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-    body { background-color: #f4f6f9; padding: 20px; color: #333; }
+    :root { 
+      --shopee-orange: #ee4d2d; 
+      --shopee-dark-orange: #d73211;
+      --shopee-light-orange: #fef1ee;
+      --shopee-bg: #f5f5f5;
+    }
     
-    .container { max-width: 800px; margin: 0 auto; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
-    
-    .header { background: var(--shopee-orange); color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-toko { background: white; color: var(--shopee-orange); padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--shopee-bg); color: #333; min-height: 100vh; padding-bottom: 40px; }
 
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
-    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 13px; }
+    /* HEADER ADMIN ALA SHOPEE */
+    header {
+      background: var(--shopee-orange);
+      color: white; padding: 12px 20px;
+      position: sticky; top: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .brand { font-size: 17px; font-weight: 700; color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; }
     
-    .btn-submit { background: var(--shopee-orange); color: white; border: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-toko { 
+      background: white; color: var(--shopee-orange); border: none;
+      padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: 700; 
+      transition: opacity 0.2s;
+    }
+    .btn-toko:hover { opacity: 0.9; }
+    .btn-logout {
+      background: rgba(0, 0, 0, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; }
-    .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; }
-    .btn-del { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+    /* CONTAINER UTAMA */
+    .container { max-width: 800px; margin: 20px auto; padding: 0 12px; }
+
+    /* LAYAR LOGIN DENGAN ANIMASI */
+    #loginSection {
+      max-width: 380px; margin: 60px auto; background: white; padding: 24px;
+      border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;
+      animation: fadeInDown 0.4s ease-out;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .login-icon { font-size: 45px; color: var(--shopee-orange); margin-bottom: 12px; }
+    .login-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #222; }
+
+    /* FORM & INPUT */
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555; }
+    .form-group input, .form-group textarea { 
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; 
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus { 
+      outline: none; border-color: var(--shopee-orange); 
+      box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.15); 
+    }
+
+    .btn-submit { 
+      background: var(--shopee-orange); color: white; border: none; padding: 11px; 
+      border-radius: 6px; font-weight: 700; cursor: pointer; width: 100%; font-size: 13px; 
+      transition: background 0.2s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-submit:active { transform: scale(0.98); background: var(--shopee-dark-orange); }
+
+    /* KARTU DASHBOARD ADMIN */
+    .card { 
+      background: white; padding: 18px; border-radius: 8px; 
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; 
+      animation: fadeInUp 0.3s ease-out;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--shopee-orange); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+    /* STATS SUMMARY ALA SHOPEE */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat-card { background: var(--shopee-light-orange); padding: 12px; border-radius: 6px; border: 1px solid #fce3dd; text-align: center; }
+    .stat-number { font-size: 18px; font-weight: 700; color: var(--shopee-orange); }
+    .stat-label { font-size: 11px; color: #666; margin-top: 2px; }
+
+    /* TABEL PRODUK */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 12px; text-align: left; vertical-align: middle; }
+    th { background: #fafafa; font-weight: 600; color: #555; }
+    .img-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; }
+    
+    .btn-del { 
+      background: #fff; color: #dc3545; border: 1px solid #dc3545; 
+      padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-del:hover { background: #dc3545; color: white; }
+
+    /* TOAST NOTIFIKASI */
+    #toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-50px);
+      background: rgba(0,0,0,0.85); color: white; padding: 10px 20px; border-radius: 20px;
+      font-size: 12px; z-index: 2000; transition: all 0.3s ease; opacity: 0; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="header">
-      <h2><i class="fas fa-cloud-upload-alt"></i> Panel Admin Upload</h2>
-      <a href="index.html" class="btn-toko"><i class="fas fa-store"></i> Buka Toko Customer</a>
+  <header>
+    <a href="#" class="brand"><i class="fas fa-user-shield"></i> Sopy Admin Panel</a>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-toko"><i class="fas fa-store"></i> Toko Customer</a>
+      <button id="btnLogout" class="btn-logout" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+    </div>
+  </header>
+
+  <!-- FORM LOGIN ADMIN -->
+  <div class="container" id="loginSection">
+    <div class="login-icon"><i class="fas fa-shield-halved"></i></div>
+    <div class="login-title">Login Admin Toko</div>
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>Username Admin</label>
+        <input type="text" id="loginUser" placeholder="Masukkan username" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="Masukkan password" required>
+      </div>
+      <button type="submit" class="btn-submit">
+        <i class="fas fa-right-to-bracket"></i> Masuk Sekarang
+      </button>
+    </form>
+    <p style="font-size:11px; color:#888; margin-top:15px;">*Default: username <b>admin</b> | password <b>admin123</b></p>
+  </div>
+
+  <!-- PANEL UTAMA ADMIN (DIPROTEKSI LOGIN) -->
+  <div class="container" id="adminPanel" style="display:none;">
+    
+    <!-- STATISTIK RINGKAS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="totalProductsCount">0</div>
+        <div class="stat-label">Total Produk Aktif</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalValueCount">Rp 0</div>
+        <div class="stat-label">Estimasi Nilai Stok</div>
+      </div>
     </div>
 
-    <!-- FORM UPLOAD -->
+    <!-- FORM UPLOAD PRODUK -->
     <div class="card">
-      <h3 style="margin-bottom: 15px; color: var(--shopee-orange);"><i class="fas fa-plus-circle"></i> Tambah Produk Baru</h3>
+      <div class="card-title">
+        <i class="fas fa-plus-circle"></i> Tambah Produk Baru
+      </div>
       
       <form id="uploadForm" onsubmit="saveProduct(event)">
         <div class="form-group">
           <label>Nama Produk*</label>
-          <input type="text" id="prodTitle" placeholder="Contoh: Jaket Parasut Waterproof" required>
+          <input type="text" id="prodTitle" placeholder="Contoh: Kemeja Polos Premium" required>
         </div>
 
         <div class="form-group">
           <label>Harga (Rp)*</label>
-          <input type="number" id="prodPrice" placeholder="Contoh: 120000" required>
+          <input type="number" id="prodPrice" placeholder="Contoh: 85000" required>
         </div>
 
         <div class="form-group">
           <label>Deskripsi Detail Produk</label>
-          <textarea id="prodDesc" rows="2" placeholder="Tuliskan ukuran, keunggulan, bahan..."></textarea>
+          <textarea id="prodDesc" rows="2" placeholder="Tuliskan ukuran, keunggulan bahan, dll..."></textarea>
         </div>
 
         <div class="form-group">
-          <label>Pilih Foto Galeri HP*</label>
+          <label>Foto Produk*</label>
           <input type="file" id="prodFile" accept="image/*" onchange="convertImage(this)" required>
         </div>
 
         <div id="previewBox" style="display:none; margin-bottom:12px;">
-          <label style="font-size:11px; color:#666;">Preview Foto Terkompresi:</label><br>
-          <img id="imgPreview" src="" style="max-height: 100px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px;">
+          <label style="font-size:11px; color:#666;">Preview Foto:</label><br>
+          <img id="imgPreview" src="" style="max-height: 100px; border-radius: 6px; border: 1px solid #ddd; margin-top: 4px;">
         </div>
 
-        <button type="submit" class="btn-submit"><i class="fas fa-upload"></i> Upload & Tampilkan Ke Customer</button>
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-cloud-arrow-up"></i> Upload & Tampilkan Ke Toko
+        </button>
       </form>
     </div>
 
-    <!-- TABEL MANAJEMEN -->
+    <!-- TABEL MANAJEMEN PRODUK -->
     <div class="card">
-      <h3><i class="fas fa-boxes"></i> Daftar Produk Terpasang</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Foto</th>
-            <th>Nama</th>
-            <th>Harga</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="adminTableBody"></tbody>
-      </table>
+      <div class="card-title">
+        <i class="fas fa-boxes-stacked"></i> Daftar Produk Terpasang
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nama Produk</th>
+              <th>Harga</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
+
+  <!-- TOAST NOTIFIKASI -->
+  <div id="toast">Notifikasi</div>
 
   <script>
     let photoData = "";
 
-    // MENGECILKAN FOTO OTOMATIS SUPAYA CEPAT & RINGAN
+    // KREDENSIAL DEFAULT LOGIN ADMIN
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "admin123";
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2000);
+    }
+
+    function checkAuth() {
+      const isLogged = sessionStorage.getItem('sopy_admin_logged');
+      if (isLogged === 'true') {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('btnLogout').style.display = 'inline-block';
+        loadAdminData();
+      } else {
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('btnLogout').style.display = 'none';
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        sessionStorage.setItem('sopy_admin_logged', 'true');
+        showToast("Login Berhasil!");
+        checkAuth();
+      } else {
+        alert("Username atau Password salah!");
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('sopy_admin_logged');
+      showToast("Berhasil Logout!");
+      checkAuth();
+    }
+
+    // KONVERSI FOTO OTOMATIS SUPAYA RINGAN
     function convertImage(input) {
       const file = input.files[0];
       if (file) {
@@ -121,18 +300,18 @@
     function saveProduct(e) {
       e.preventDefault();
       if (!photoData) {
-        alert("Pilih foto dulu dari galeri HP!");
+        alert("Pilih foto terlebih dahulu!");
         return;
       }
 
-      const title = document.getElementById('prodTitle').value;
+      const title = document.getElementById('prodTitle').value.trim();
       const price = document.getElementById('prodPrice').value;
-      const desc = document.getElementById('prodDesc').value;
+      const desc = document.getElementById('prodDesc').value.trim();
 
       const newProduct = {
         id: Date.now(),
         title: title,
-        price: price,
+        price: Number(price),
         desc: desc || "Produk berkualitas dari toko kami.",
         image: photoData
       };
@@ -141,21 +320,26 @@
       products.unshift(newProduct);
       localStorage.setItem('sopy_products', JSON.stringify(products));
 
-      alert("BERHASIL! Produk langsung tersambung ke halaman Customer!");
+      showToast("Produk Berhasil Ditambahkan!");
 
       document.getElementById('uploadForm').reset();
       document.getElementById('previewBox').style.display = 'none';
       photoData = "";
 
-      loadAdminTable();
+      loadAdminData();
     }
 
-    function loadAdminTable() {
+    function loadAdminData() {
       const tbody = document.getElementById('adminTableBody');
       const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
 
+      // Hitung Statistik
+      document.getElementById('totalProductsCount').innerText = products.length;
+      const totalVal = products.reduce((acc, curr) => acc + Number(curr.price), 0);
+      document.getElementById('totalValueCount').innerText = 'Rp ' + totalVal.toLocaleString('id-ID');
+
       if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Belum ada produk tersimpan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888; padding:15px;">Belum ada produk tersimpan.</td></tr>`;
         return;
       }
 
@@ -165,7 +349,7 @@
           <tr>
             <td><img src="${p.image}" class="img-thumb"></td>
             <td><b>${p.title}</b></td>
-            <td>Rp ${Number(p.price).toLocaleString('id-ID')}</td>
+            <td style="color:var(--shopee-orange); font-weight:600;">Rp ${Number(p.price).toLocaleString('id-ID')}</td>
             <td><button class="btn-del" onclick="deleteProduct(${idx})"><i class="fas fa-trash"></i> Hapus</button></td>
           </tr>
         `;
@@ -178,11 +362,13 @@
         const products = JSON.parse(localStorage.getItem('sopy_products') || '[]');
         products.splice(idx, 1);
         localStorage.setItem('sopy_products', JSON.stringify(products));
-        loadAdminTable();
+        showToast("Produk dihapus!");
+        loadAdminData();
       }
     }
 
-    loadAdminTable();
+    // Inisialisasi saat halaman dibuka
+    checkAuth();
   </script>
 </body>
 </html>
